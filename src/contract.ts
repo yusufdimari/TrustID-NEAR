@@ -1,12 +1,5 @@
 // Find all our documentation at https://docs.near.org
-import {
-  NearBindgen,
-  near,
-  call,
-  view,
-  UnorderedMap,
-  Vector,
-} from "near-sdk-js";
+import { NearBindgen, call, view, UnorderedMap } from "near-sdk-js";
 
 @NearBindgen({})
 class DIDContract {
@@ -16,65 +9,93 @@ class DIDContract {
     this.dids = new UnorderedMap<DIDDocument>("dids");
   }
 
+  //to creat a new Decentralized Identity
   @call({})
   createDID({
     id,
     publicKey,
     serviceEndpoint,
-  }: {
-    id: string;
-    publicKey: string;
-    serviceEndpoint: string;
-  }): DIDDocument {
-    const sender = near.predecessorAccountId();
+    ...otherProps
+  }: DIDDocument): DIDDocument {
     if (this.dids.get(id)) {
       throw new Error("Did already Exist.");
     }
 
-    const didDocument = new DIDDocument(id, publicKey, serviceEndpoint);
+    const didDocument = new DIDDocument(
+      id,
+      publicKey,
+      serviceEndpoint,
+      otherProps
+    );
     this.dids.set(id, didDocument);
     return didDocument;
   }
 
+  //to view a Decentralized Identity
   @view({})
   getDID({ id }: { id: string }): DIDDocument | null {
     return this.dids.get(id);
   }
 
+  //to update a new Decentralized Identity
   @call({})
   updateDID({
     id,
     publicKey,
     serviceEndpoint,
-  }: {
-    id: string;
-    publicKey: string;
-    serviceEndpoint: string;
-  }): DIDDocument {
+    ...otherProps
+  }: DIDDocument): DIDDocument {
     if (!this.dids.get(id)) {
       throw new Error("DID does not exist");
     }
-    const didDocument = new DIDDocument(id, publicKey, serviceEndpoint);
+    const didDocument = new DIDDocument(
+      id,
+      publicKey,
+      serviceEndpoint,
+      otherProps
+    );
     this.dids.set(id, didDocument);
     return didDocument;
   }
 
+  //to get all Decentralized Identities
   @view({})
   getAllDIDs(): DIDDocument[] {
     const allDIDs = this.dids.toArray();
     return allDIDs.map(([id, didDocument]) => didDocument);
   }
+
+  //to delete a Decentralized Identity
+  @call({})
+  deleteDID({ id }: { id: string }) {
+    if (!this.dids.get(id)) {
+      throw new Error("DID does not exist");
+    }
+    return this.dids.remove(id);
+  }
 }
 
 //create a class for the DID
 class DIDDocument {
-  id: string;
+  id?: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
   publicKey: string;
+  phone: string;
+  email: string;
   serviceEndpoint: string;
+  [key: string]: string;
 
-  constructor(id: string, publicKey: string, serviceEndpoint: string) {
+  constructor(
+    id: string,
+    publicKey: string,
+    serviceEndpoint: string,
+    otherProps: { [key: string]: string }
+  ) {
     this.id = id;
     this.publicKey = publicKey;
     this.serviceEndpoint = serviceEndpoint;
+    Object.assign(this, otherProps);
   }
 }

@@ -797,21 +797,22 @@ function NearBindgen({
   };
 }
 
-var _dec, _dec2, _dec3, _dec4, _dec5, _class, _class2;
-let DIDContract = (_dec = NearBindgen({}), _dec2 = call({}), _dec3 = view(), _dec4 = call({}), _dec5 = view(), _dec(_class = (_class2 = class DIDContract {
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _class, _class2;
+let DIDContract = (_dec = NearBindgen({}), _dec2 = call({}), _dec3 = view(), _dec4 = call({}), _dec5 = view(), _dec6 = call({}), _dec(_class = (_class2 = class DIDContract {
   constructor() {
     this.dids = new UnorderedMap("dids");
   }
   createDID({
     id,
     publicKey,
-    serviceEndpoint
+    serviceEndpoint,
+    ...otherProps
   }) {
     predecessorAccountId();
     if (this.dids.get(id)) {
       throw new Error("Did already Exist.");
     }
-    const didDocument = new DIDDocument(id, publicKey, serviceEndpoint);
+    const didDocument = new DIDDocument(id, publicKey, serviceEndpoint, otherProps);
     this.dids.set(id, didDocument);
     return didDocument;
   }
@@ -823,12 +824,13 @@ let DIDContract = (_dec = NearBindgen({}), _dec2 = call({}), _dec3 = view(), _de
   updateDID({
     id,
     publicKey,
-    serviceEndpoint
+    serviceEndpoint,
+    ...otherProps
   }) {
     if (!this.dids.get(id)) {
       throw new Error("DID does not exist");
     }
-    const didDocument = new DIDDocument(id, publicKey, serviceEndpoint);
+    const didDocument = new DIDDocument(id, publicKey, serviceEndpoint, otherProps);
     this.dids.set(id, didDocument);
     return didDocument;
   }
@@ -836,7 +838,29 @@ let DIDContract = (_dec = NearBindgen({}), _dec2 = call({}), _dec3 = view(), _de
     const allDIDs = this.dids.toArray();
     return allDIDs.map(([id, didDocument]) => didDocument);
   }
-}, _applyDecoratedDescriptor(_class2.prototype, "createDID", [_dec2], Object.getOwnPropertyDescriptor(_class2.prototype, "createDID"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "getDID", [_dec3], Object.getOwnPropertyDescriptor(_class2.prototype, "getDID"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "updateDID", [_dec4], Object.getOwnPropertyDescriptor(_class2.prototype, "updateDID"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "getAllDIDs", [_dec5], Object.getOwnPropertyDescriptor(_class2.prototype, "getAllDIDs"), _class2.prototype), _class2)) || _class); //create a class for the DID
+  deleteDID({
+    id
+  }) {
+    if (!this.dids.get(id)) {
+      throw new Error("DID does not exist");
+    }
+    return this.dids.remove(id);
+  }
+}, _applyDecoratedDescriptor(_class2.prototype, "createDID", [_dec2], Object.getOwnPropertyDescriptor(_class2.prototype, "createDID"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "getDID", [_dec3], Object.getOwnPropertyDescriptor(_class2.prototype, "getDID"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "updateDID", [_dec4], Object.getOwnPropertyDescriptor(_class2.prototype, "updateDID"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "getAllDIDs", [_dec5], Object.getOwnPropertyDescriptor(_class2.prototype, "getAllDIDs"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "deleteDID", [_dec6], Object.getOwnPropertyDescriptor(_class2.prototype, "deleteDID"), _class2.prototype), _class2)) || _class); //create a class for the DID
+function deleteDID() {
+  const _state = DIDContract._getState();
+  if (!_state && DIDContract._requireInit()) {
+    throw new Error("Contract must be initialized");
+  }
+  const _contract = DIDContract._create();
+  if (_state) {
+    DIDContract._reconstruct(_contract, _state);
+  }
+  const _args = DIDContract._getArgs();
+  const _result = _contract.deleteDID(_args);
+  DIDContract._saveToStorage(_contract);
+  if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(DIDContract._serialize(_result, true));
+}
 function getAllDIDs() {
   const _state = DIDContract._getState();
   if (!_state && DIDContract._requireInit()) {
@@ -892,12 +916,13 @@ function createDID() {
   if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(DIDContract._serialize(_result, true));
 }
 class DIDDocument {
-  constructor(id, publicKey, serviceEndpoint) {
+  constructor(id, publicKey, serviceEndpoint, otherProps) {
     this.id = id;
     this.publicKey = publicKey;
     this.serviceEndpoint = serviceEndpoint;
+    Object.assign(this, otherProps);
   }
 }
 
-export { createDID, getAllDIDs, getDID, updateDID };
+export { createDID, deleteDID, getAllDIDs, getDID, updateDID };
 //# sourceMappingURL=trustid-near.js.map
